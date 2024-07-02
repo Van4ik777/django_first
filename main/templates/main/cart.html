@@ -1,0 +1,139 @@
+{% extends 'main/layouts.html' %}
+{% block title %}    
+    Cart
+{% endblock %}
+{% block body %}
+    {% if user.is_authenticated %}
+    <h1>Your Cart</h1>
+    <table>
+        {% for item in cart %}
+        <tr>
+            <td>{{ item.pizza_name }}</td>
+            <td>${{ item.price }}</td>
+            <td>
+                <button class="decrement-quantity-btn" data-pizza-name="{{ item.pizza_name }}">-</button>
+                <span class="quantity">{{ item.quantity }}</span>
+                <button class="increment-quantity-btn" data-pizza-name="{{ item.pizza_name }}">+</button>
+            </td>
+            <td class="total-price" data-price-per-unit="{{ item.price }}">${{ item.total_price  }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <p>Total Price: <span id="total-price">${{ total_price }}</span></p>
+    <form action="{% url 'clear_cart' %}" method="post">
+        {% csrf_token %}
+        <button type="submit">Clear Cart</button>
+    </form>
+
+    <h2>Оформление заказа</h2>
+    <form method="post" action="{% url 'checkout' %}">
+        {% csrf_token %}
+        <div class="form-field">
+            <label for="name">Имя</label>
+            <input type="text" id="name" name="name" required>
+        </div>
+        <div class="form-field">
+            <label for="phone">Телефон</label>
+            <input type="text" id="phone" name="phone" required>
+        </div>
+        <div class="form-field">
+            <label for="city">Город</label>
+            <input type="text" id="city" name="city" required>
+        </div>
+        <div class="form-field">
+            <label for="house_number">Дом</label>
+            <input type="text" id="house_number" name="house_number" required>
+        </div>
+        <div class="form-field">
+            <label for="apartment_number">Номер квартиры</label>
+            <input type="text" id="apartment_number" name="apartment_number" required>
+        </div>
+        <div class="form-field">
+            <label for="payment_method">Способ оплаты</label>
+            <select id="payment_method" name="payment_method" required>
+                <option value="cash">Наличными</option>
+                <option value="online">Онлайн</option>
+            </select>
+        </div>
+        <div class="form-field">
+            <label for="delivery_time">Когда доставлять</label>
+            <select id="delivery_time" name="delivery_time" required>
+                <option value="now">Сейчас</option>
+                <option value="scheduled">На время</option>
+            </select>
+        </div>
+        <button type="submit">Оформить заказ</button>
+    </form>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+    $(document).ready(function() {
+        $('.increment-quantity-btn').on('click', function() {
+            var pizzaName = $(this).data('pizza-name');
+            var quantitySpan = $(this).parent().find('.quantity');
+            var quantity = parseInt(quantitySpan.text()) + 1;
+            quantitySpan.text(quantity);
+    
+            updateQuantity(pizzaName, quantity);
+            updatePrice(pizzaName, quantity);
+        });
+    
+        $('.decrement-quantity-btn').on('click', function() {
+            var pizzaName = $(this).data('pizza-name');
+            var quantitySpan = $(this).parent().find('.quantity');
+            var quantity = parseInt(quantitySpan.text()) - 1;
+            if (quantity >= 0) {
+                quantitySpan.text(quantity);
+    
+                updateQuantity(pizzaName, quantity);
+                updatePrice(pizzaName, quantity);
+    
+            }
+        });
+    
+        function updateQuantity(pizzaName, quantity) {
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/update_quantity/', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
+    
+            var data = JSON.stringify({pizza_name: pizzaName, quantity: quantity});
+            xhr.send(data);
+        }
+    
+        function updatePrice(pizzaName, quantity) {
+            // Update the price in the UI based on the new quantity
+    
+            var item = $('.increment-quantity-btn[data-pizza-name="' + pizzaName + '"]').closest('tr').find('.total-price');
+            var pricePerUnit = parseFloat(item.data('price-per-unit'));
+            item.text('$' + (pricePerUnit * quantity));
+            $('.total-price').html('<div class="spinner-border spinner-border-sm"  role="status" > <span class="visually-hidden">Загрузка...</span> </div>');
+    
+            setTimeout(function() {
+                location.reload();
+            }, 500);
+        }
+        if (!localStorage.getItem('pageRefreshed')) {
+      localStorage.setItem('pageRefreshed', 'true');
+      location.reload();
+    } else {
+      console.log('Страница уже была обновлена');
+    }
+    
+    });
+    
+    </script>
+        {% else %}
+        <div class="alert alert-danger" role="alert">
+            Для доступа к корзине необходимо <a href="{% url 'login' %}">войти</a> или <a href="{% url 'register' %}">зарегистрироваться</a>.
+        </div>
+    <script>
+    if (!localStorage.getItem('pageRefreshed')) {
+      localStorage.setItem('pageRefreshed', 'true');
+      location.reload();
+    } else {
+      console.log('Страница уже была обновлена');
+    };
+    
+    </script>
+{% endif %}
+{% endblock %}
