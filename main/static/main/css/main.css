@@ -1,0 +1,32 @@
+body {
+	background: linear-gradient(-45deg, #d6d692, #e0ffc0, #e4afcd, #b4b4ee);
+	background-size: 400% 400%;
+	animation: gradient 15s ease infinite;
+	height: 100vh;
+	font-family: Arial, sans-serif;
+}
+.carousel-item{
+	height: 350px;
+}
+@keyframes gradient {
+	0% {
+		background-position: 0% 50%;
+	}
+	50% {
+		background-position: 100% 50%;
+	}
+	100% {
+		background-position: 0% 50%;
+	}
+}
+
+.ioi {
+    transition: transform 0.3s ease;
+}
+
+.ioi:hover {
+    transform: scale(1.2);
+}
+.footer-left-items{
+	margin-left: 100px;
+}

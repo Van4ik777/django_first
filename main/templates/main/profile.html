@@ -1,0 +1,17 @@
+{% extends 'main/layouts.html' %}
+{% load static %}
+{% block title %}
+    register
+{% endblock %}
+{% block body %}
+
+<body>
+    <h1>Профиль пользователя: {{ request.user.username }}</h1>
+    <p>Дополнительная информация о пользователе можно добавить здесь.</p>
+    <a href="/logout" class="btn btn-outline-danger">Выйти из аккаунта</a>
+
+
+
+</body>
+
+{% endblock %}

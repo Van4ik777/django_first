@@ -1,0 +1,393 @@
+{% extends 'main/layouts.html' %}
+{% load static %}
+{% block title %}
+    Shop
+{% endblock %}
+{% block body %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+<style>
+
+
+/* Pizza section styles */
+.pizza-section {
+    display: flex;
+    align-items: center;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.pizza-image {
+    max-width: 100%;
+    border-radius: 5px;
+}
+
+.pizza-details {
+    margin-left: 20px;
+}
+
+.pizza-details h2 {
+    margin-top: 0;
+}
+
+.pizza-details ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.pizza-details li {
+    margin-bottom: 10px;
+}
+
+.btn-group {
+    display: flex;
+    gap: 10px;
+}
+
+/* Review styles */
+.review {
+    border-bottom: 1px solid #ccc;
+    padding: 20px 0;
+    background-color: #fff;
+    justify-content: space-between; /* Это выровняет элементы по горизонтали */
+    display: flex;
+    align-items: center;
+    width: 900px;
+    margin: 0 auto;
+    margin-bottom: 50px;
+}
+
+.review p {
+    margin: 10px;
+    flex: 1;
+    word-wrap: break-word;
+    white-space: normal;
+}
+
+.del-button {
+    background-color: #ff5f5f;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    cursor: pointer;
+    margin-left: auto;
+    margin-right: 10px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.del-button:hover {
+    background-color: #e60000;
+}
+
+.like-button {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+.like-button:hover .heart-icon {
+    color: red;
+}
+
+.heart-icon {
+    font-size: 24px;
+    color: black;
+    transition: color 0.3s ease;
+}
+
+.like-count {
+    margin-right: 10px;
+}
+
+.add-reply-btn,
+.toggle-replies-btn {
+    background-color: #03658c;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    cursor: pointer;
+    margin-top: 20px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+    margin-left: 10px;
+}
+
+.add-reply-btn:hover{
+    background-color: #005580;
+}
+.toggle-replies-btn:hover{
+
+}
+.toggle-replies-btn{
+
+}
+
+.reply-form {
+    display: none;
+    margin-top: 20px;
+}
+
+.reply-form textarea {
+    width: 100%;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    resize: vertical;
+}
+
+.reply-form button[type="submit"] {
+    background-color: #03658c;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.reply-form button[type="submit"]:hover {
+    background-color: #005580;
+}
+
+.replies-container {
+    display: none;
+    margin-left: 30px;
+}
+
+.reply {
+    margin-left: 50px;
+}
+
+#add-review-form {
+    display: none;
+}
+
+form {
+    margin-top: 20px;
+}
+
+.form-field {
+    margin-bottom: 20px;
+}
+
+.form-field label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.form-field input[type="text"],
+.form-field input[type="email"],
+.form-field textarea {
+    width: 100%;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    resize: vertical;
+}
+
+.form-field button[type="submit"] {
+    background-color: #03658c;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.form-field button[type="submit"]:hover {
+    background-color: #005580;
+}
+</style>
+
+<div class="container">
+    <div class="pizza-section">
+        <div>
+            <img src="{% static 'main/images/large_pizza.jpg' %}" alt="Large Pizza" class="pizza-image">
+        </div>
+        <div class="pizza-details">
+            <h2>Large Pizza</h2>
+            <ul>
+                <li>Size: 16 inches</li>
+                <li>Crust: Thin Crust</li>
+                <li>Toppings: Pepperoni, Mushrooms, Onions</li>
+                <li>Price: $14.99</li>
+            </ul>
+            <div class="btn-group mt-3">
+                <button class="btn btn-primary">Add to Cart</button>
+                <button class="btn btn-success">Buy Now</button>
+            </div>
+        </div>
+    </div>
+    {% if request.user.is_authenticated %}
+        <h2>Отзывы</h2>
+        <button id="add-review-btn" class="toggle-replies-btn">Добавить отзыв</button>
+        <div id="reviews-list">
+            {% for review in reviews %}
+                {% if review.reply_to %}
+                    <div style="display: none;">
+                {% else %}
+                    <div class="review">
+                        <p>{{ review.user }}; stars={{ review.stars }}: {{ review.content }}</p>
+                        <form method="post" action="{% url 'add_like' review.id %}">
+                            {% csrf_token %}
+                            {% if review.user in review.likes.all %}
+                                <button class="like-button" type="submit">
+                                    <i class="fa fa-heart-o heart-icon" style="font-size:30px;color:red;"></i>
+                                </button>
+                            {% else %}
+                                <button class="like-button" type="submit">
+                                    <i class="fa fa-heart-o heart-icon" style="font-size:30px;color:black;"></i>
+                                </button>
+                            {% endif %}
+                        </form>
+                        <span class="like-count">{{ review.likes.count }}</span>
+                        {% if request.user == review.user %}
+                            <form method="post" action="{% url 'delete_review' review.id %}">
+                                {% csrf_token %}
+                                <button class="del-button" type="submit">Удалить</button>
+                            </form>
+                        {% elif request.user.is_authenticated and request.user.is_staff %}
+                            <form method="post" action="{% url 'delete_review' review.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="del-button">Удалить</button>
+                            </form>
+                        {% endif %}
+                        <button class="add-reply-btn">Ответить</button>
+                        <form class="reply-form" method="post" action="{% url 'add_review_1' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="reply_to" value="{{ review.id }}">
+                            <input type="hidden" name="stars" value="5">
+                            <div class="form-field">
+                                <label for="reply_content">Your Reply:</label>
+                                <textarea name="content" id="content" cols="30" rows="3" placeholder="Enter your reply here"></textarea>
+                                {% if form.errors %}
+                                    {% for error in form.errors %}
+                                        <span class="row-form-errors">{{ error }}</span>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                            <button type="submit">Submit Reply</button>
+                        </form>
+                    </div>
+                     {% if review.replies.all %}
+                        <div id="reviews-list">
+                            <a class="toggle-replies-btn">Развернуть ответы</a>
+                            <div class="replies-container">
+                                {% for reply in review.replies.all %}
+                                    <div class="review">
+                                        <br>
+                                        <p><strong>{{ reply.user }} ответил: {{ review.user }}</strong>: {{ reply.content }}</p>
+                                        <form method="post" action="{% url 'add_like' reply.id %}">
+                                            {% csrf_token %}
+                                            {% if reply.user in reply.likes.all %}
+                                                <button class="like-button like-button2" type="submit">
+                                                    <i class="fa fa-heart-o heart-icon" style="font-size:20px;color:red;"></i>
+                                                </button>
+                                            {% else %}
+                                                <button class="like-button" type="submit">
+                                                    <i class="fa fa-heart-o heart-icon" style="font-size:20px;color:black;"></i>
+                                                </button>
+                                            {% endif %}
+                                        </form>
+                                        <span class="like-count">{{ reply.likes.count }}</span>
+                                        {% if request.user == reply.user %}
+                                            <form method="post" action="{% url 'delete_review' reply.id %}">
+                                                {% csrf_token %}
+                                                <button class="del-button" type="submit">Удалить</button>
+                                            </form>
+                                        {% elif request.user.is_authenticated and request.user.is_staff %}
+                                            <form method="post" action="{% url 'delete_review' reply.id %}">
+                                                {% csrf_token %}
+                                                <button type="submit" class="del-button">Удалить</button>
+                                            </form>
+
+
+                                        {% elif request.user == review.user %}
+                                            <form method="post" action="{% url 'delete_review' reply.id %}">
+                                                {% csrf_token %}
+                                                <button type="submit" class="del-button">Удалить</button>
+                                            </form>
+                                        {% endif %}
+                                    </div>
+                                {% empty %}
+                                    <p>No replies yet.</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+        <form id="add-review-form" method="post" action="{% url 'add_review_1' %}">
+            {% csrf_token %}
+            {% for field in form %}
+                {% if field.name == 'stars' %}
+                    <div class="star-rating">
+                        {% for choice in field %}
+                            {{ choice.tag }}
+                            {{ choice.choice_label }}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="form-field">
+                        {{ field.label_tag }}
+                        {{ field }}
+                        {% if field.errors %}
+                            <span class="row-form-errors">{{ field.errors }}</span>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            {% endfor %}
+            <button type="submit">Отправить отзыв</button>
+        </form>
+    {% else %}
+        <div class="reviews-container">
+            <h2>Отзывы</h2>
+            <div id="reviews-list">
+                {% for review in reviews %}
+                    <div class="review">
+                        <p>{{ review.user }}: {{ review.content }}</p>
+                        <a class="like-count">{{ review.likes }}</a>
+                        {% if review.replies.all %}
+                            <div class="replies">
+                                {% for reply in review.replies.all %}
+                                    <p class="reply">{{ reply.user }}: {{ reply.content }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+            <p>Чтобы оставить отзыв, пожaлуйста, <a href="{% url 'login' %}">войдите</a> или <a href="{% url 'register' %}">зарегистрируйтесь</a>.</p>
+        </div>
+    {% endif %}
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $("#add-review-btn").click(function() {
+            $("#add-review-form").slideToggle();
+        });
+
+        $(".add-reply-btn").click(function() {
+            $(this).siblings(".reply-form").slideToggle();
+        });
+
+        $(".toggle-replies-btn").click(function() {
+            $(this).siblings(".replies-container").slideToggle();
+        });
+
+        $(".like-button2").click(function() {
+            var repliesContainer = $(this).closest('.review').find('.replies-container');
+            repliesContainer.slideToggle();
+        });
+    });
+</script>
+{% endblock %}

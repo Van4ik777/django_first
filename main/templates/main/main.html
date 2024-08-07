@@ -1,0 +1,106 @@
+{% extends 'main/layouts.html' %}
+{% load static %}
+{% block title %}    
+    Shop
+{% endblock %}
+{% block body %}
+<style>
+    .cardі-piza-main {
+        width: calc(50% - 40px);
+        background: aliceblue;
+        transition: transform 0.2s;
+        padding: 20px;
+        margin: 20px;
+        box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+        text-align: center;
+        border-radius: 8px;
+
+    }
+    .cardі-piza-main:hover {
+        transform: scale(1.05);
+        box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+    }
+    .card-pizza-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+</style>
+
+<body>
+    <h1>Choose Your Pizza</h1>
+    <div class="card-pizza-container">
+        <a href="/pizza_1" >
+            <div class="cardі-piza-main">
+                <img class="pizza-img" src="{% static 'main/images/imgcart.png' %}" alt="Margherita">
+                <div class="pizza-name">Margherita</div>
+                <div class="pizza-price">Price: $10</div>
+                <button class="add-to-cart-btn" data-pizza-name="Margherita" data-quantity="1" data-price="10">Add to Cart</button>
+            </div>
+        </a>
+        <a href="/pizza_2" >
+            <div class="cardі-piza-main">
+                <img class="pizza-img" src="{% static 'main/images/imgcart.png' %}" alt="Pepperoni">
+                <div class="pizza-name">Pepperoni</div>
+                <div class="pizza-price">Price: $12</div>
+                <button class="add-to-cart-btn" data-pizza-name="Pepperoni" data-quantity="1" data-price="12">Add to Cart</button>
+            </div>
+        </a>
+        <a href="/pizza_3" >
+            <div class="cardі-piza-main">
+                <img class="pizza-img" src="{% static 'main/images/imgcart.png' %}" alt="Vegetarian">
+                <div class="pizza-name">Vegetarian</div>
+                <div class="pizza-price">Price: $11</div>
+                <button class="add-to-cart-btn" data-pizza-name="Vegetarian" data-quantity="1" data-price="11">Add to Cart</button>
+            </div>
+        </a>
+    </div>
+</body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+
+    var csrfToken = "{{ csrf_token }}";
+
+    $(document).ready(function() {
+        $(window).on('beforeunload', function() {
+            $.ajax({
+                url: '/clear_cart/',
+                type: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken
+                },
+                async: false,
+                success: function(response) {
+                    console.log('Cart cleared successfully');
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error clearing cart:', error);
+                }
+            });
+        });
+    });
+</script>
+
+    <script>
+
+
+document.querySelectorAll('.add-to-cart-btn').forEach(function(button) {
+    button.addEventListener('click', function(event) {
+        event.preventDefault();
+
+        var pizzaName = this.dataset.pizzaName;
+        var quantity = parseInt(this.dataset.quantity);
+        var price = parseInt(this.dataset.price);
+
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '/add_to_cart/', true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
+
+        var data = JSON.stringify({pizza_name: pizzaName, quantity: quantity, price: price});
+        xhr.send(data);
+    });
+});
+</script>
+{% endblock %}
